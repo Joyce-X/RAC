@@ -12,10 +12,13 @@
 
 #import <ReactiveCocoa/ReactiveCocoa.h>
 
+typedef BOOL (^JoyceBlock) ();
 
-@interface ViewController ()
+@interface ViewController ()<UITextFieldDelegate>
 
 @property (weak, nonatomic) UILabel *label;
+
+@property (copy, nonatomic) JoyceBlock callback;
 
 @end
 
@@ -24,6 +27,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    
     self.view.backgroundColor = [UIColor orangeColor];
     
     //!< 测试文本框
@@ -33,7 +37,7 @@
 //    [self testBtn];
     
     //!< 测试label
-    [self testLabel];
+//    [self testLabel];
     
     //!< 测试alert
 //    [self testAlert];
@@ -41,7 +45,10 @@
     //!< 测试通知
 //    [self testNotification];
     
-    [self testKVO];
+//    [self testKVO];
+    
+    //!< 代码分析
+    [self analyse];
     
 
 }
@@ -221,6 +228,96 @@
 
 
 
+/**
+ *  RAC原理分析
+ */
+- (void)analyse
+{
+    
+//    UITextField *tf = [UITextField new];
+//    
+//    tf.frame = CGRectMake(100, 100, 100, 100);
+//    
+//    tf.backgroundColor = [UIColor purpleColor];
+//    
+//    [self.view addSubview:tf];
+//    
+//    
+//    UILabel *label = [UILabel new];
+//    
+//    label.frame = CGRectMake(200, 100, 80, 80);
+//    
+//    [self.view addSubview:label];
+//    
+//    UITapGestureRecognizer *tap = [UITapGestureRecognizer new];
+//    
+//    label.userInteractionEnabled = YES;
+//    
+//    [label addGestureRecognizer:tap];
+    
+    //!< 信号联合
+//    RACSignal *signal1 = [tf rac_textSignal];
+//    
+//    RACSignal *signal2 = [tap rac_gestureSignal];
+//    
+//    RAC(label,backgroundColor) = [RACSignal combineLatest:@[signal1,signal2] reduce:^id{
+//        
+//        if (tf.text.length > 5 && tap.state == UIGestureRecognizerStateEnded)
+//        {
+//            return [UIColor redColor];
+//        }else
+//        {
+//        
+//            return [UIColor greenColor];
+//        }
+//    }];
+    
+//    //!< 信号关联
+//    RAC(label,text) = [tf rac_textSignal];
+//
+    
+    //!< 1 创建信号
+    RACSignal *signal = [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+      
+        
+        //!< 3 发送信号
+        [subscriber sendNext:@"Joyce RAC"];
+        
+        //!< 3.1 发送完信号，取消订阅
+        [subscriber sendCompleted];
+        
+        //!< block： 返回RACDisposable 对象，传入的参数是遵循RACSubscriber协议的对象、
+        //!< 4 用于取消订阅时倾力资源用，比如释放一些资源
+        return [RACDisposable new];
+        
+        
+    }];
+    
+    
+    
+    //!< 2.1 订阅Next信号
+    [signal subscribeNext:^(id x) {
+        
+        NSLog(@"next %@",x);
+    }];
+    
+    //!< 2.2 订阅错误信号
+    [signal subscribeError:^(NSError *error) {
+       
+        NSLog(@"error");
+        
+    }];
+    
+    //!< 订阅完成信号
+    [signal subscribeCompleted:^{
+       
+        NSLog(@"completed");
+        
+    }];
+    
+    
+
+}
 
 
 
